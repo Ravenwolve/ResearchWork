@@ -22,7 +22,7 @@ int main() {
 	std::cin >> s >> t;
 	try {
 		std::cout << "Максимальный поток: ";
-		std::cout << forFordFulkerson.MaximalFlow("1", "5") << std::endl;
+		//std::cout << forFordFulkerson.MaximalFlow("1", "5") << std::endl;
 	}
 	catch (const std::string& ex) {
 		std::cout << ex << std::endl;

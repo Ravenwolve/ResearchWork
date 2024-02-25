@@ -58,6 +58,7 @@ protected:
 	// Кратчайшие пути из вершины fromWhere до всех вершин во взвешенном графе без отрицательных весов алгоритмом Дийкстры
 	inline std::unordered_map<std::string, std::string> Dijkstra(const std::string& fromWhere) const;
 	inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>>& Floyd() const;
+	inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>> Johnson();
 	inline std::unordered_map<std::string, std::unordered_map<std::string, double>> GetAdjacencyMatrix() const noexcept;
 public:
 	inline Graph() noexcept;
@@ -86,6 +87,7 @@ public:
 	// - возвращает 0, если граф несвязный.
 	inline int IsLinked() const noexcept;
 	// Кратчайший путь между заданными вершинами
+	inline std::unordered_map<std::string, double> FordBellman(const std::string& fromWhere) const;
 	inline std::vector<std::string> ShortestPath(const std::string&, const std::string&, ShortestPathAlgorithm = ShortestPathAlgorithm::Dijkstra) const;
 	// Расстояние между заданными вершинами
 	inline double Distance(const std::string&, const std::string&, ShortestPathAlgorithm = ShortestPathAlgorithm::Dijkstra) const;

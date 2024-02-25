@@ -319,6 +319,45 @@ inline std::unordered_map<std::string, std::unordered_map<std::string, std::stri
 	return cachedFloyd;
 }
 
+template<bool Directing, bool Weighting>
+inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>> Graph<Directing, Weighting>::Johnson()
+{
+	std::unordered_map<std::string, std::unordered_map<std::string, std::string>> dists;
+	AddVertex("s");
+	for (auto it = adjacencyList.begin(); it != adjacencyList.end(); ++it)
+	{
+		AddArc("s", it->first, 0.f);
+	}
+
+	auto tempBellmanDists = FordBellman("s");
+
+	if constexpr (Weighting)
+	{
+		for (auto u_iter = adjacencyList.begin(); u_iter != adjacencyList.end(); ++u_iter)
+		{
+			for (auto v_iter = u_iter->second.begin(); v_iter != u_iter->second.end(); ++v_iter)
+			{
+				v_iter->second = v_iter->second +
+					tempBellmanDists[u_iter->first] - tempBellmanDists[v_iter->first];
+			}
+		}
+	}
+	else
+	{
+		throw std::exception("Graph must be oriented");
+	}
+	
+
+	RemoveVertex("s");
+
+	for (auto it = adjacencyList.begin(); it != adjacencyList.end(); ++it)
+	{
+		dists[it->first] = Dijkstra(it->first);
+	}
+
+	return dists;
+}
+
 template <bool Directing, bool Weighting>
 inline std::vector<std::string> Graph<Directing, Weighting>::ShortestPath(const std::string& fromWhere, const std::string& whereTo, ShortestPathAlgorithm algorithmType) const {
 	if (!adjacencyList.contains(fromWhere))
@@ -374,17 +413,46 @@ inline std::vector<std::string> Graph<Directing, Weighting>::ShortestPath(const 
 			return path;
 		}
 		else {
-			std::unordered_map<std::string, std::string> result = FordBellman(fromWhere);
-			if (result[whereTo] == "")
-				throw "Path from " + fromWhere + " to " + whereTo + " doesn't exist";
+			//std::unordered_map<std::string, std::string> result = FordBellman(fromWhere);
+			//if (result[whereTo] == "")
+				//throw "Path from " + fromWhere + " to " + whereTo + " doesn't exist";
 			std::vector<std::string> path;
-			for (std::string* currentVertex = const_cast<std::string*>(&whereTo); *currentVertex != ""; currentVertex = &result[*currentVertex])
-				path.push_back(*currentVertex);
-			std::reverse(path.begin(), path.end());
+			//for (std::string* currentVertex = const_cast<std::string*>(&whereTo); *currentVertex != ""; currentVertex = &result[*currentVertex])
+				//path.push_back(*currentVertex);
+			//std::reverse(path.begin(), path.end());
 			return path;
 		}
 	}
 	else throw "This graph is unweighted";
+}
+
+
+template <bool Directing, bool Weighting>
+inline std::unordered_map<std::string, double> Graph<Directing, Weighting>::FordBellman(const std::string& fromWhere) const {
+	if constexpr (Weighting) {
+		std::unordered_map<std::string, double> dist;
+		std::unordered_map<std::string, std::string> path;
+		for (auto iter = adjacencyList.begin(); iter != adjacencyList.end(); ++iter) {
+			dist[iter->first] = DBL_MAX;
+			path[iter->first] = "";
+		}
+		dist[fromWhere] = 0;
+		bool negativeCycle = false;
+		for (size_t i = 0; i < Size(); ++i) {
+			negativeCycle = false;
+			for (auto u_iter = adjacencyList.begin(); u_iter != adjacencyList.end(); ++u_iter)
+				for (auto v_iter = u_iter->second.begin(); v_iter != u_iter->second.end(); ++v_iter)
+					if (dist[u_iter->first] < DBL_MAX && dist[u_iter->first] + v_iter->second < dist[v_iter->first]) {
+						dist[v_iter->first] = dist[u_iter->first] + v_iter->second;
+						path[v_iter->first] = u_iter->first;
+						negativeCycle = true;
+					}
+		}
+		if (!negativeCycle)
+			return dist;
+		else throw std::string("This graph having negative cycle");
+	}
+	else throw std::string("This graph is unweighted");
 }
 
 template <bool Directing, bool Weighting>
