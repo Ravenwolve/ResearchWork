@@ -148,47 +148,83 @@ inline void GraphIO::Output(const Graph<Directing, Weighting>& graph, std::ostre
 template <bool Directing, bool Weighting>
 inline std::unordered_map<std::string, std::string> Graph<Directing, Weighting>::Dijkstra(const std::string& fromWhere) const {
 	if constexpr (Weighting) {
-		std::unordered_map<std::string, double> lengthsOfShortestWaysToAll; // D
-		std::unordered_map<std::string, std::string> shortestWaysToAll;		// P
-		std::string* currentVertex = const_cast<std::string*>(&fromWhere);  // w
-		std::string* nextVertex = nullptr;
-		double minFromSWTWT;
-		bool endingFlag = false;
-		while (!endingFlag) {
-			endingFlag = true;
-			if (currentVertex != nullptr)
-				visited[*currentVertex] = true;
-			else break;
-			minFromSWTWT = DBL_MAX;
-			for (auto iter = adjacencyList.begin(); iter != adjacencyList.end(); ++iter) { // v
-				if (!visited[iter->first]) {
-					if (adjacencyList.at(*currentVertex).contains(iter->first)) {
-						// D[v] = min(D[v], D[w] + C(w, v)
-						if (lengthsOfShortestWaysToAll.contains(iter->first)) {
-							if (lengthsOfShortestWaysToAll[*currentVertex] + adjacencyList.at(*currentVertex).at(iter->first) < lengthsOfShortestWaysToAll[iter->first]) {
-								lengthsOfShortestWaysToAll[iter->first] = lengthsOfShortestWaysToAll[*currentVertex] + adjacencyList.at(*currentVertex).at(iter->first);
-								shortestWaysToAll[iter->first] = *currentVertex; // добавляем ребро (w, v)
-							}
-						}
-						else {
-							lengthsOfShortestWaysToAll[iter->first] = lengthsOfShortestWaysToAll[*currentVertex] + adjacencyList.at(*currentVertex).at(iter->first);
-							shortestWaysToAll[iter->first] = *currentVertex;
-						}
-					}
-					// ищем минимальный элемент из D из оставшихся
-					if (lengthsOfShortestWaysToAll.contains(iter->first) && lengthsOfShortestWaysToAll[iter->first] < minFromSWTWT) {
-						nextVertex = const_cast<std::string*>(&iter->first);
-						minFromSWTWT = lengthsOfShortestWaysToAll[iter->first];
-					}
-					endingFlag = false;
+		//vertex, distance
+		std::unordered_map<std::string, int64_t> d;
+		//vertex, it's parent
+		std::unordered_map<std::string, std::string> parents;
+		using Pair = std::pair<int64_t, std::string>;
+
+		/*for (const auto pair : adjacencyList)
+		{
+			if (pair.first != fromWhere)
+			{
+				d.insert(std::make_pair(pair.first, INT64_MAX));
+				parents.insert(std::make_pair(pair.first, ""));
+			}
+
+			else
+			{
+				d.insert(std::make_pair(pair.first, 0));
+				parents.insert(std::make_pair(pair.first, ""));
+			}
+
+		}*/
+
+		for (auto it = adjacencyList.begin(); it != adjacencyList.end(); ++it)
+		{
+			if (it->first != fromWhere)
+			{
+				d.insert(std::make_pair(it->first, INT64_MAX));
+				parents.insert(std::make_pair(it->first, ""));
+			}
+			else
+			{
+				d.insert(std::make_pair(it->first, 0));
+				parents.insert(std::make_pair(it->first, ""));
+			}
+		}
+
+		std::priority_queue<Pair, std::vector<Pair>, std::greater<Pair>> pq;
+		pq.push(std::make_pair(0, fromWhere));
+
+		while (!pq.empty())
+		{
+			auto cur_pair = pq.top();
+			auto cur_v = cur_pair.second;
+			auto cur_d = cur_pair.first;
+			pq.pop();
+
+			if (cur_d > d[cur_v])
+			{
+				continue;
+			}
+
+			/*for (const auto pair : adjacencyList[cur_pair.second])
+			{
+				auto cur_u = pair.first;
+				auto w = pair.second;
+				if (d[cur_u] > d[cur_v] + w)
+				{
+					d[cur_u] = d[cur_v] + w;
+					parents[cur_u] = cur_v;
+					pq.push(std::make_pair(d[cur_u], cur_u));
+				}
+			}*/
+			auto tempAdjList = adjacencyList.at(cur_pair.second);
+			for (auto pair = tempAdjList.begin(); pair != tempAdjList.end(); ++pair)
+			{
+				auto cur_u = pair->first;
+				auto w = pair->second;
+				if (d[cur_u] > d[cur_v] + w)
+				{
+					d[cur_u] = d[cur_v] + w;
+					parents[cur_u] = cur_v;
+					pq.push(std::make_pair(d[cur_u], cur_u));
 				}
 			}
-			if (nextVertex == nullptr || *nextVertex == *currentVertex)
-				break;
-			else currentVertex = nextVertex;
 		}
-		ResetVisited();
-		return shortestWaysToAll;
+
+		return parents;
 	}
 	else throw "This graph is unweighted";
 }
