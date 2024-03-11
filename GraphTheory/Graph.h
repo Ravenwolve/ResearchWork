@@ -4,13 +4,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-enum class ShortestPathAlgorithm {
-	Dijkstra,
-	Floyd,
-	Bellman_Ford,
-	Default
-};
-
 template <bool Directing, bool Weighting>
 class Graph;
 
@@ -47,51 +40,36 @@ class Graph {
 	friend class Graph<false, Weighting>;
 	friend class Graph<true, Weighting>;
 	friend void GraphIO::Output(const Graph&, std::ostream&);
+	friend void GraphIO::Input(Graph<Directing, Weighting>&, std::ifstream&);
 protected:
 	mutable std::unordered_map<std::string, bool> visited;
-	mutable std::unordered_map<std::string, std::unordered_map<std::string, std::string>> cachedFloyd;
 	std::unordered_map<std::string, WeightingType<Weighting>> adjacencyList;
 	inline void AddA(const std::string&, const std::string&, double = 1);
-	inline void DFS(const std::string&) const noexcept;
-	inline void BFS(const std::string&) const noexcept;
 	inline void ResetVisited() const noexcept;
-	// Кратчайшие пути из вершины fromWhere до всех вершин во взвешенном графе без отрицательных весов алгоритмом Дийкстры
+	// РљСЂР°С‚С‡Р°Р№С€РёРµ РїСѓС‚Рё РёР· РІРµСЂС€РёРЅС‹ fromWhere РґРѕ РІСЃРµС… РІРµСЂС€РёРЅ РІРѕ РІР·РІРµС€РµРЅРЅРѕРј РіСЂР°С„Рµ Р±РµР· РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹С… РІРµСЃРѕРІ Р°Р»РіРѕСЂРёС‚РјРѕРј Р”РёР№РєСЃС‚СЂС‹
 	inline std::unordered_map<std::string, std::string> Dijkstra(const std::string& fromWhere) const;
 	inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>>& Floyd() const;
-	
 	inline std::unordered_map<std::string, std::unordered_map<std::string, double>> GetAdjacencyMatrix() const noexcept;
 public:
 	inline Graph() noexcept;
 	inline Graph(const Graph<false, Weighting>&) noexcept;
 	inline Graph(const Graph<true, Weighting>&) noexcept;
 	inline ~Graph() noexcept = default;
-	// Возвращает количество вершин в графе.
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ РІРµСЂС€РёРЅ РІ РіСЂР°С„Рµ.
 	inline size_t Size() const noexcept;
-	// Добавляет вершину с заданным именем
+	// Р”РѕР±Р°РІР»СЏРµС‚ РІРµСЂС€РёРЅСѓ СЃ Р·Р°РґР°РЅРЅС‹Рј РёРјРµРЅРµРј
 	inline void AddVertex(const std::string&);
-	// Для орграфа: добавляет дугу, ведущую из первой заданной вершины во вторую;
-	// Для неориентированного графа: добавляет ребро, соединяющее заданную пару вершин.
+	// Р”Р»СЏ РѕСЂРіСЂР°С„Р°: РґРѕР±Р°РІР»СЏРµС‚ РґСѓРіСѓ, РІРµРґСѓС‰СѓСЋ РёР· РїРµСЂРІРѕР№ Р·Р°РґР°РЅРЅРѕР№ РІРµСЂС€РёРЅС‹ РІРѕ РІС‚РѕСЂСѓСЋ;
+	// Р”Р»СЏ РЅРµРѕСЂРёРµРЅС‚РёСЂРѕРІР°РЅРЅРѕРіРѕ РіСЂР°С„Р°: РґРѕР±Р°РІР»СЏРµС‚ СЂРµР±СЂРѕ, СЃРѕРµРґРёРЅСЏСЋС‰РµРµ Р·Р°РґР°РЅРЅСѓСЋ РїР°СЂСѓ РІРµСЂС€РёРЅ.
 	inline void AddArc(const std::string&, const std::string&, double = 1);
-	// Удаляет вершину с заданным именем.
+	// РЈРґР°Р»СЏРµС‚ РІРµСЂС€РёРЅСѓ СЃ Р·Р°РґР°РЅРЅС‹Рј РёРјРµРЅРµРј.
 	inline void RemoveVertex(const std::string&);
-	// Для орграфа: удаляет дугу, ведущую из первой заданной вершины во вторую;
-	// Для неориентированного графа: удаляет ребро, соединяющее заданную пару вершин.
+	// Р”Р»СЏ РѕСЂРіСЂР°С„Р°: СѓРґР°Р»СЏРµС‚ РґСѓРіСѓ, РІРµРґСѓС‰СѓСЋ РёР· РїРµСЂРІРѕР№ Р·Р°РґР°РЅРЅРѕР№ РІРµСЂС€РёРЅС‹ РІРѕ РІС‚РѕСЂСѓСЋ;
+	// Р”Р»СЏ РЅРµРѕСЂРёРµРЅС‚РёСЂРѕРІР°РЅРЅРѕРіРѕ РіСЂР°С„Р°: СѓРґР°Р»СЏРµС‚ СЂРµР±СЂРѕ, СЃРѕРµРґРёРЅСЏСЋС‰РµРµ Р·Р°РґР°РЅРЅСѓСЋ РїР°СЂСѓ РІРµСЂС€РёРЅ.
 	inline void RemoveArc(const std::string&, const std::string&);
 	inline std::unordered_map<std::string, bool> GetVisited() const noexcept;
-	// Для орграфа:
-	// - возвращает 1, если граф сильно связный;
-	// - возвращает -1, если граф слабо связный.
-	// Для неориентированного графа:
-	// - возвращает 1, если граф связный.
-	// Для графа любого случая:
-	// - возвращает 0, если граф несвязный.
-	inline int IsLinked() const noexcept;
-	// Кратчайший путь между заданными вершинами
 	inline std::unordered_map<std::string, double> FordBellman(const std::string& fromWhere) const;
-	inline std::vector<std::string> ShortestPath(const std::string&, const std::string&, ShortestPathAlgorithm = ShortestPathAlgorithm::Dijkstra) const;
 	inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>> Johnson();
-	// Расстояние между заданными вершинами
-	inline double Distance(const std::string&, const std::string&, ShortestPathAlgorithm = ShortestPathAlgorithm::Dijkstra) const;
 	inline std::vector<std::string> GetVertices() const noexcept;
 	inline std::unordered_map<std::pair<std::string, std::string>, double> GetArcs() const;
 	inline std::vector<std::string> GetAdjacentVertices(const std::string&) const;
